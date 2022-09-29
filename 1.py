@@ -1,39 +1,49 @@
-from matplotlib import pyplot as plt
+
 import numpy as np
-import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-# Function to generate random sample
-def genSample(m):
-    # List to store the sample
-    seq = []
+
+# Defining the values of M
+M = [100,1000,10000,100000]
+
+# helper function
+def f(u):
+    return np.exp(np.sqrt(u))   
+
+def gen(m):
+    # Define mean and var to calculate the expected value and confidence intervals
+    mean=0
+    var=0
     for i in range(m):
-        # generate U from U(0,1)
-        u = np.random.random()
-        # generate Y_i
-        y = np.exp(np.sqrt(u))
-        # append in the sequence
-        seq.append(y)
+        # Generate u from U(0,1)
+        y = f(np.random.uniform(0,1))
+        mean+=y
+        var+=y**2
+    mean /= float(m)
+    var /= float(m)
+    var -= mean**2
 
-    return seq
+    return (mean, var)
 
-# Function to calculate the confidence interval
-def confInt(confidence, seq):
-    m = len(seq)
-    mean = np.sum(seq)/m
-    # Compute value of delta
-    delta = norm.ppf((confidence+1)/2.)
-    # Compute value of unbiased variance
-    s = np.sqrt(np.sum(np.square(seq-mean))/(m-1))
-    # Return the confidence interval
-    return ( mean - delta*s/np.sqrt(m), mean + delta*s/np.sqrt(m))
 
-M = [100, 1000, 10000, 100000]
 
+# Lists to store the expected value and confidence intervals
+seq = []
+confint = []
 for m in M:
-    seq = genSample(m)
-    mean = np.sum(seq)/m
-    left, right = confInt(0.95, seq)
-    # print(seq)
-    print(f"Expected mean for sample size of {m} = ", mean)
-    print(f"95% Confidence interval for the sample = ({left}, {right})")
+    I, s = gen(m) 
+    seq.append(I)
+    delta = norm.ppf(1.95/2.0)
+    confint.append((I-delta*s/np.sqrt(m), I+delta*s/np.sqrt(m)))
+
+
+
+# Print for each value of M
+for i in range(4):
+    print(f"Expected value for M = {M[i]} is {seq[i]} with 95% Confidence Interval {confint[i]}")
+
+
+
+
+
